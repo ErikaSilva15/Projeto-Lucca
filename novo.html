@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestor de Pessoas</title>
+  <link href="bootstrap.min.css" rel="stylesheet"> <!-- Bootstrap local -->
+  <style>
+    .logo {
+      width: 60px;
+      margin-right: 10px;
+    }
+    .info {
+      display: none;
+      background-color: #f8f9fa;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 5px;
+    }
+    .id-item:hover {
+      background-color: #f1f1f1;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+  <div class="text-center mb-4">
+    <img src="634784.png" class="logo" alt="Logo">
+    <h1 class="d-inline-block align-middle">Programa Secreto do Lucca</h1>
+  </div>
+
+  <div class="d-grid gap-2 d-md-flex justify-content-md-center mb-4">
+    <button class="btn btn-primary" onclick="mostrarCadastro()">📋 Cadastrar</button>
+    <button class="btn btn-success" onclick="mostrarPesquisa()">🔍 Pesquisar</button>
+    <button class="btn btn-warning" onclick="exibirTodos()">📑 Exibir IDs</button>
+    <button class="btn btn-danger" onclick="excluirTudo()">🗑️ Excluir Tudo</button>
+  </div>
+
+  <div id="cadastroBox" class="card p-3 mb-3 d-none">
+    <input type="text" id="idInput" class="form-control mb-2" placeholder="Digite o ID">
+    <button class="btn btn-outline-primary" onclick="abrirFormulario()">Abrir Formulário</button>
+  </div>
+
+  <form id="formulario" class="card p-3 mb-3 d-none">
+    <input type="text" id="nome" maxlength="20" class="form-control mb-2" placeholder="Nome (máx. 20)" required>
+    <input type="number" id="idade" min="0" max="99" class="form-control mb-2" placeholder="Idade (0-99)" required>
+    <input type="text" id="cor" maxlength="10" class="form-control mb-2" placeholder="Cor favorita (máx. 10)" required>
+    <input type="text" id="jogo" maxlength="20" class="form-control mb-2" placeholder="Jogo favorito (máx. 20)" required>
+    <textarea id="obs" maxlength="60" class="form-control mb-2" placeholder="Observação (máx. 60)"></textarea>
+    <button type="button" class="btn btn-primary" onclick="salvarPessoa()">Salvar</button>
+  </form>
+
+  <div id="pesquisaBox" class="card p-3 mb-3 d-none">
+    <input type="text" id="pesquisaId" class="form-control mb-2" placeholder="Pesquisar por ID">
+    <button class="btn btn-outline-success" onclick="buscarPessoa()">Buscar</button>
+  </div>
+
+  <div id="resultado" class="card p-3 mb-3"></div>
+  <div id="listaIds" class="card p-3 mb-3"></div>
+</div>
+
+<script>
+  const senhaSegura = "112233aa";
+
+  function esconderTudo() {
+    document.getElementById('cadastroBox').classList.add('d-none');
+    document.getElementById('formulario').classList.add('d-none');
+    document.getElementById('pesquisaBox').classList.add('d-none');
+    document.getElementById('resultado').innerHTML = '';
+    document.getElementById('listaIds').innerHTML = '';
+  }
+
+  function mostrarCadastro() {
+    esconderTudo();
+    document.getElementById('cadastroBox').classList.remove('d-none');
+  }
+
+  function mostrarPesquisa() {
+    esconderTudo();
+    document.getElementById('pesquisaBox').classList.remove('d-none');
+  }
+
+  function abrirFormulario() {
+    const id = document.getElementById('idInput').value.trim();
+    if (!id) return alert("Digite um ID válido.");
+
+    const pessoas = JSON.parse(localStorage.getItem('cadastro.json')) || {};
+    if (pessoas[id]) {
+      return alert("ID já cadastrado. Use um ID diferente.");
+    }
+
+    document.getElementById('formulario').classList.remove('d-none');
+  }
+
+  function salvarPessoa() {
+    const id = document.getElementById('idInput').value.trim();
+    if (!id) return alert("ID inválido.");
+
+    let pessoas = JSON.parse(localStorage.getItem('cadastro.json')) || {};
+
+    if (pessoas[id]) {
+      return alert("ID já existe. Escolha outro ID.");
+    }
+
+    const pessoa = {
+      id,
+      nome: document.getElementById('nome').value,
+      idade: document.getElementById('idade').value,
+      cor: document.getElementById('cor').value,
+      jogo: document.getElementById('jogo').value,
+      obs: document.getElementById('obs').value
+    };
+
+    pessoas[id] = pessoa;
+    localStorage.setItem('cadastro.json', JSON.stringify(pessoas));
+
+    document.getElementById('formulario').reset();
+    document.getElementById('formulario').classList.add('d-none');
+    document.getElementById('idInput').value = '';
+    alert("Cadastro salvo com sucesso!");
+  }
+
+  function buscarPessoa() {
+    const id = document.getElementById('pesquisaId').value.trim();
+    const pessoas = JSON.parse(localStorage.getItem('cadastro.json')) || {};
+    const pessoa = pessoas[id];
+    const resultado = document.getElementById('resultado');
+
+    if (pessoa) {
+      resultado.innerHTML = `
+        <h5>Informações:</h5>
+        <p><strong>Nome:</strong> ${pessoa.nome}</p>
+        <p><strong>Idade:</strong> ${pessoa.idade}</p>
+        <p><strong>Cor favorita:</strong> ${pessoa.cor}</p>
+        <p><strong>Jogo favorito:</strong> ${pessoa.jogo}</p>
+        <p><strong>Observação:</strong> ${pessoa.obs}</p>
+      `;
+    } else {
+      resultado.innerHTML = `<p class="text-danger">ID não encontrado.</p>`;
+    }
+  }
+
+  function exibirTodos() {
+    const senha = prompt("Digite a senha para visualizar todos os IDs:");
+    if (senha !== senhaSegura) return alert("Senha incorreta.");
+
+    const pessoas = JSON.parse(localStorage.getItem('cadastro.json')) || {};
+    const lista = document.getElementById('listaIds');
+    lista.innerHTML = "<h5>Lista de IDs:</h5>";
+
+    for (let id in pessoas) {
+      const item = document.createElement('div');
+      item.className = 'id-item p-2 border-bottom';
+      item.innerHTML = `<strong>${id}</strong>`;
+
+      const info = document.createElement('div');
+      info.className = 'info';
+      info.innerHTML = `
+        <p><strong>Nome:</strong> ${pessoas[id].nome}</p>
+        <p><strong>Idade:</strong> ${pessoas[id].idade}</p>
+        <p><strong>Cor favorita:</strong> ${pessoas[id].cor}</p>
+        <p><strong>Jogo favorito:</strong> ${pessoas[id].jogo}</p>
+        <p><strong>Observação:</strong> ${pessoas[id].obs}</p>
+      `;
+
+      item.onclick = () => {
+        info.style.display = info.style.display === 'none' ? 'block' : 'none';
+      };
+
+      lista.appendChild(item);
+      lista.appendChild(info);
+    }
+  }
+
+  function excluirTudo() {
+    const senha = prompt("Digite a senha para excluir todos os dados:");
+    if (senha !== senhaSegura) return alert("Senha incorreta.");
+
+    if (confirm("Tem certeza que deseja excluir todos os dados?")) {
+      localStorage.removeItem('cadastro.json');
+      alert("Todos os dados foram excluídos.");
+      esconderTudo();
+    }
+  }
+</script>
+
+</body>
+</html>
