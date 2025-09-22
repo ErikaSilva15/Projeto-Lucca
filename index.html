@@ -162,6 +162,7 @@
         <p><strong>Cor favorita:</strong> ${pessoas[id].cor}</p>
         <p><strong>Jogo favorito:</strong> ${pessoas[id].jogo}</p>
         <p><strong>Observação:</strong> ${pessoas[id].obs}</p>
+        <button class="btn btn-sm btn-danger mt-2" onclick="excluirIndividual('${id}')">🗑️ Excluir este cadastro</button>
       `;
 
       item.onclick = () => {
@@ -170,6 +171,16 @@
 
       lista.appendChild(item);
       lista.appendChild(info);
+    }
+  }
+
+  function excluirIndividual(id) {
+    if (confirm(`Tem certeza que deseja excluir o cadastro com ID "${id}"?`)) {
+      let pessoas = JSON.parse(localStorage.getItem('cadastro.json')) || {};
+      delete pessoas[id];
+      localStorage.setItem('cadastro.json', JSON.stringify(pessoas));
+      alert(`Cadastro "${id}" excluído com sucesso.`);
+      exibirTodos(); // Atualiza a lista
     }
   }
 
